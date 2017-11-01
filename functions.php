@@ -7,6 +7,8 @@
  * @version 1.0.0
  */
 
+
+
 /**
  * Routes Class
  */
@@ -243,8 +245,34 @@ class Demo_Flash {
 
 }
 
+/**
+ * Enqueue demo scripts
+ */
 function demo_scripts() {
 	wp_enqueue_style( 'demo', 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css' );
-	wp_enqueue_script('jquery');
+	wp_enqueue_script( 'jquery' );
 }
 add_action( 'wp_enqueue_scripts', 'demo_scripts' );
+
+/**
+ * Create DB table for demo purpose
+ */
+function create_demo_db_table() {
+	global $wpdb;
+	$db_name = 'items';
+	$charset_collate = $wpdb->get_charset_collate();
+
+	if ( $wpdb->get_var( "SHOW TABLES LIKE '$db_name'") !== $db_name ) {
+		$sql = 'CREATE TABLE ' . $db_name . " 
+				( `id` int(20) UNSIGNED NOT NULL AUTO_INCREMENT, 
+				  `name` varchar(255) NOT NULL, 
+				  `price` varchar(255) NOT NULL, 
+				  `description` text NOT NULL, 
+				  PRIMARY KEY  (`id`) 
+			  ) $charset_collate;";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
+	}
+}
+add_action( 'init', 'create_demo_db_table' );
