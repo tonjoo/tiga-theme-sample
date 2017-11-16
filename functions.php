@@ -7,7 +7,7 @@
  * @version 1.0.0
  */
 
-
+require 'vendor/autoload.php';
 
 /**
  * Routes Class
@@ -55,8 +55,9 @@ class Demo_Routes {
 	 * Item Index Controller
 	 */
 	public function item_index() {
-		global $wpdb;
-		$items = $wpdb->get_results( 'SELECT * FROM items' );
+		$query = QB::table('items')->select('*');
+		$items = $query->get();
+
 		$data = array(
 			'items' => $items,
 			'flash' => $this->flash,
@@ -69,7 +70,7 @@ class Demo_Routes {
 	 */
 	public function item_new() {
 		$data = array(
-			'repopulate'    => $this->session->pull( 'input' ),
+			'repopulate' => $this->session->pull( 'input' ),
 			'flash' => $this->flash,
 		);
 		set_tiga_template( 'template/item-new.php', $data );
@@ -81,13 +82,17 @@ class Demo_Routes {
 	 * @param object $request   Request object.
 	 */
 	public function item_create( $request ) {
-		global $wpdb;
 		if ( $request->has( 'name|price|description' ) ) {
 			$data = $request->all();
-			$wpdb->insert( 'items', $data );
+
+			// insert to table
+			$insertId = QB::table('items')->insert($data);			
+
+			// success flash message
 			$this->flash->success( 'Item berhasil dibuat' );
 			wp_safe_redirect( site_url() . '/items' );
 		} else {
+			// error flash message with return data
 			$this->flash->error( 'Semua field harus diisi' );
 			$this->session->set( 'input', $request->all() );
 			wp_safe_redirect( site_url() . '/items/new' );
@@ -100,13 +105,14 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_edit( $request ) {
-		global $wpdb;
-		$item = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM items WHERE id = %d', $request->input( 'id' ) ) );
+		$item = QB::table( 'items' )->find( $request->input( 'id' ), 'id' );
+
 		$data = array(
-			'item'          => $item,
-			'repopulate'    => $this->session->pull( 'input' ),
+			'item' => $item,
+			'repopulate' => $this->session->pull( 'input' ),
 			'flash' => $this->flash,
 		);
+
 		set_tiga_template( 'template/item-edit.php', $data );
 	}
 
@@ -116,13 +122,17 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_update( $request ) {
-		global $wpdb;
 		if ( $request->has( 'name|price|description' ) ) {
 			$data = $request->all();
-			$wpdb->update( 'items', $data, array( 'id' => $request->input( 'id' ) ) );
+			
+			// update to table
+			QB::table( 'items' )->where( 'id', $request->input( 'id' ) )->update( $data );
+
+			// success flash message
 			$this->flash->success( 'Item berhasil diupdate' );
 			wp_safe_redirect( site_url() . '/items' );
 		} else {
+			// error flash message with return data
 			$this->flash->error( 'Semua field harus diisi' );
 			$this->session->set( 'input', $request->all() );
 			wp_safe_redirect( site_url() . '/items/' . $request->input( 'id' ) . '/edit' );
@@ -135,8 +145,10 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_delete( $request ) {
-		global $wpdb;
-		$wpdb->delete( 'items', array( 'id' => $request->input( 'id' ) ) );
+		// delete a row from table
+		QB::table( 'items' )->where( 'id', $request->input( 'id' ) )->delete();
+
+		// success flash message
 		$this->flash->success( 'Item berhasil dihapus' );
 		wp_safe_redirect( site_url() . '/items' );
 	}
@@ -153,7 +165,7 @@ class Demo_Routes {
 	 */
 	public function ajax_controller() {
 		echo "<p>Hello, I'm from ajax!</p>";
-		die;
+		wp_die();
 	}
 
 }
@@ -259,7 +271,7 @@ add_action( 'wp_enqueue_scripts', 'demo_scripts' );
  */
 function create_demo_db_table() {
 	global $wpdb;
-	$db_name = 'items';
+	$db_name = $wpdb->prefix . 'items';
 	$charset_collate = $wpdb->get_charset_collate();
 
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$db_name'") !== $db_name ) {
@@ -274,5 +286,27 @@ function create_demo_db_table() {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 	}
+
+	pixie_connect_db();
 }
-add_action( 'init', 'create_demo_db_table' );
+add_action( 'init', 'create_demo_db_table', 1);
+
+/**
+ * Pixie connect DB
+ */
+function pixie_connect_db() {
+	global $wpdb;
+
+	$config = array(
+        'driver'    => 'mysql', // Db driver
+        'host'      => DB_HOST,
+        'database'  => DB_NAME,
+        'username'  => DB_USER,
+        'password'  => DB_PASSWORD,
+        'charset'   => DB_CHARSET, // Optional
+        'collation' => DB_COLLATE, // Optional
+        'prefix'    => $wpdb->prefix, // Table prefix, optional
+    );
+
+	new \Pixie\Connection('mysql', $config, 'QB');
+}
