@@ -7,8 +7,6 @@
  * @version 1.0.0
  */
 
-require 'vendor/autoload.php';
-
 /**
  * Routes Class
  */
@@ -55,7 +53,7 @@ class Demo_Routes {
 	 * Item Index Controller
 	 */
 	public function item_index() {
-		$query = QB::table('items')->select('*');
+		$query = WP_PX::table('items')->select('*');
 		$items = $query->get();
 
 		$data = array(
@@ -86,7 +84,7 @@ class Demo_Routes {
 			$data = $request->all();
 
 			// insert to table
-			$insertId = QB::table('items')->insert($data);			
+			$insertId = WP_PX::table('items')->insert($data);			
 
 			// success flash message
 			$this->flash->success( 'Item berhasil dibuat' );
@@ -105,7 +103,7 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_edit( $request ) {
-		$item = QB::table( 'items' )->find( $request->input( 'id' ), 'id' );
+		$item = WP_PX::table( 'items' )->find( $request->input( 'id' ), 'id' );
 
 		$data = array(
 			'item' => $item,
@@ -126,7 +124,7 @@ class Demo_Routes {
 			$data = $request->all();
 			
 			// update to table
-			QB::table( 'items' )->where( 'id', $request->input( 'id' ) )->update( $data );
+			WP_PX::table( 'items' )->where( 'id', $request->input( 'id' ) )->update( $data );
 
 			// success flash message
 			$this->flash->success( 'Item berhasil diupdate' );
@@ -146,7 +144,7 @@ class Demo_Routes {
 	 */
 	public function item_delete( $request ) {
 		// delete a row from table
-		QB::table( 'items' )->where( 'id', $request->input( 'id' ) )->delete();
+		WP_PX::table( 'items' )->where( 'id', $request->input( 'id' ) )->delete();
 
 		// success flash message
 		$this->flash->success( 'Item berhasil dihapus' );
@@ -271,7 +269,7 @@ add_action( 'wp_enqueue_scripts', 'demo_scripts' );
  */
 function create_demo_db_table() {
 	global $wpdb;
-	$db_name = $wpdb->prefix . 'items';
+	$db_name = 'items';
 	$charset_collate = $wpdb->get_charset_collate();
 
 	if ( $wpdb->get_var( "SHOW TABLES LIKE '$db_name'") !== $db_name ) {
@@ -287,26 +285,6 @@ function create_demo_db_table() {
 		dbDelta( $sql );
 	}
 
-	pixie_connect_db();
+	TigaPixie::get('WP_PX');
 }
 add_action( 'init', 'create_demo_db_table', 1);
-
-/**
- * Pixie connect DB
- */
-function pixie_connect_db() {
-	global $wpdb;
-
-	$config = array(
-        'driver'    => 'mysql', // Db driver
-        'host'      => DB_HOST,
-        'database'  => DB_NAME,
-        'username'  => DB_USER,
-        'password'  => DB_PASSWORD,
-        'charset'   => DB_CHARSET, // Optional
-        'collation' => DB_COLLATE, // Optional
-        'prefix'    => $wpdb->prefix, // Table prefix, optional
-    );
-
-	new \Pixie\Connection('mysql', $config, 'QB');
-}
