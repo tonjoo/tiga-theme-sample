@@ -7,3 +7,91 @@ Description: Tiga Theme Sample
 Version: 1.0
 Text Domain: tiga-theme-sample
 */
+
+.container.main-container {
+    margin-top: 30px;
+}
+
+.post-list-top-panel {
+    margin-top: 20px;
+}
+
+.post-list-top-panel + .post-list-top-panel {
+	margin-top: 10px;	
+}
+
+.post-list-title {
+    color: #212529;
+}
+
+.post-list-title:hover {
+    text-decoration: none;
+}
+
+.post-list-item-actions {
+    display: block;
+    margin-top: 5px;
+    visibility: hidden;
+}
+
+.post-list-item-actions a {
+    padding: 0 5px;
+}
+
+.post-list-item-actions a + a {
+    margin-left: 2px;
+}
+
+tr:hover td .post-list-item-actions {
+    visibility: visible;
+}
+
+.post-list-top-panel a,
+.post-list-top-panel button {
+    box-shadow: none !important;
+}
+
+table thead th.col-id {
+    width: 85px;
+}
+
+table thead th.col-category {
+    width: 25%;
+}
+
+table thead th.col-status {
+    width: 185px;
+}
+
+input[type='submit'] {
+    cursor: pointer;
+}
+
+.screen-reader-text, .screen-reader-text span, .ui-helper-hidden-accessible {
+    position: absolute;
+    margin: -1px;
+    padding: 0;
+    height: 1px;
+    width: 1px;
+    overflow: hidden; 
+    clip: rect(0 0 0 0);
+    border: 0;
+    word-wrap: normal!important;
+}
+
+ul.pagination span.total {
+    height: 38px;
+    line-height: 36px;
+}
+
+ul.pagination span.total + li {
+    margin-left: 15px;
+}
+
+.hidden {
+    display: none;
+}
+
+#ajax-receiver {
+	margin-top: 10px;
+}
