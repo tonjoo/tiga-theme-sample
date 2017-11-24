@@ -1,13 +1,13 @@
 <?php get_header(); ?>
-<div class="container">
+<div class="container main-container">
 	<div class="row">
-		<div class="col-md-12">
-			<br>
-			<?php $data['flash']->display(); ?>
+		<div class="col-md-3">
+			<?php include( 'sidebar-admin.php' ) ?>
 		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-6">
+		<div class="col-md-9">
+		
+			<?php extras::flash_message($data); ?>
+
 			<form action="" method="post">
 				<div class="form-group">
 					<label for="input-name">Name</label>

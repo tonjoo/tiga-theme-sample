@@ -7,7 +7,56 @@
  * @version 1.0.0
  */
 
+require(get_stylesheet_directory() . '/inc/flash-message.php'); 
+require(get_stylesheet_directory() . '/inc/extras.php'); 
+require(get_stylesheet_directory() . '/app/login.php'); 
+require(get_stylesheet_directory() . '/app/dashboard.php'); 
+require(get_stylesheet_directory() . '/app/articles.php'); 
 
+/**
+ * Main theme init
+ */
+function init_tiga_cms() {
+	add_theme_support( 'post-thumbnails' );
+}
+add_action( 'init', 'init_tiga_cms' );
+
+/**
+ * Enqueue demo scripts
+ */
+function demo_scripts() {
+	// styles
+	wp_enqueue_style( 'bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css' );
+	wp_enqueue_style( 'tiga-style', get_stylesheet_uri() );
+	
+	// media uploader
+	wp_enqueue_media();
+
+	// js jquery
+	wp_register_script('jquery-3.2.1', 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js', false, '3.2.1', true);
+	wp_enqueue_script('jquery-3.2.1');
+
+	// js modernizr
+  	wp_register_script('modernizr',  'https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js', false, '2.8.3', true);
+	wp_enqueue_script('modernizr');
+	
+	// js popper
+	wp_register_script('popper',  'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js', false, '1.12.3', true);
+	wp_enqueue_script('popper');
+  	
+  	// js bootstarp
+  	wp_register_script('bootstrap-js', 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/js/bootstrap.min.js', false, '4.0.0-beta.2', true);
+	wp_enqueue_script('bootstrap-js');
+
+	// media uploader
+	wp_register_script('media-uploader-js', get_template_directory_uri() . '/assets/media-uploader.js');
+	wp_enqueue_script('media-uploader-js');
+
+	// js script
+	wp_register_script('script-js', get_template_directory_uri() . '/assets/script.js');
+	wp_enqueue_script('script-js');
+}
+add_action( 'wp_enqueue_scripts', 'demo_scripts' );
 
 /**
  * Routes Class
@@ -55,8 +104,11 @@ class Demo_Routes {
 	 * Item Index Controller
 	 */
 	public function item_index() {
-		global $wpdb;
-		$items = $wpdb->get_results( 'SELECT * FROM items' );
+		extras::check_login( 'login' );	
+
+		$query = WP_PX::table('items')->select('*');
+		$items = $query->get();
+
 		$data = array(
 			'items' => $items,
 			'flash' => $this->flash,
@@ -68,8 +120,10 @@ class Demo_Routes {
 	 * New Item Controller
 	 */
 	public function item_new() {
+		extras::check_login( 'login' );	
+
 		$data = array(
-			'repopulate'    => $this->session->pull( 'input' ),
+			'repopulate' => $this->session->pull( 'input' ),
 			'flash' => $this->flash,
 		);
 		set_tiga_template( 'template/item-new.php', $data );
@@ -81,13 +135,19 @@ class Demo_Routes {
 	 * @param object $request   Request object.
 	 */
 	public function item_create( $request ) {
-		global $wpdb;
+		extras::check_login( 'login' );	
+
 		if ( $request->has( 'name|price|description' ) ) {
 			$data = $request->all();
-			$wpdb->insert( 'items', $data );
+
+			// insert to table
+			$insertId = WP_PX::table('items')->insert($data);			
+
+			// success flash message
 			$this->flash->success( 'Item berhasil dibuat' );
 			wp_safe_redirect( site_url() . '/items' );
 		} else {
+			// error flash message with return data
 			$this->flash->error( 'Semua field harus diisi' );
 			$this->session->set( 'input', $request->all() );
 			wp_safe_redirect( site_url() . '/items/new' );
@@ -100,13 +160,16 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_edit( $request ) {
-		global $wpdb;
-		$item = $wpdb->get_row( $wpdb->prepare( 'SELECT * FROM items WHERE id = %d', $request->input( 'id' ) ) );
+		extras::check_login( 'login' );	
+
+		$item = WP_PX::table( 'items' )->find( $request->input( 'id' ), 'id' );
+
 		$data = array(
-			'item'          => $item,
-			'repopulate'    => $this->session->pull( 'input' ),
+			'item' => $item,
+			'repopulate' => $this->session->pull( 'input' ),
 			'flash' => $this->flash,
 		);
+
 		set_tiga_template( 'template/item-edit.php', $data );
 	}
 
@@ -116,13 +179,19 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_update( $request ) {
-		global $wpdb;
+		extras::check_login( 'login' );	
+
 		if ( $request->has( 'name|price|description' ) ) {
 			$data = $request->all();
-			$wpdb->update( 'items', $data, array( 'id' => $request->input( 'id' ) ) );
+			
+			// update to table
+			WP_PX::table( 'items' )->where( 'id', $request->input( 'id' ) )->update( $data );
+
+			// success flash message
 			$this->flash->success( 'Item berhasil diupdate' );
 			wp_safe_redirect( site_url() . '/items' );
 		} else {
+			// error flash message with return data
 			$this->flash->error( 'Semua field harus diisi' );
 			$this->session->set( 'input', $request->all() );
 			wp_safe_redirect( site_url() . '/items/' . $request->input( 'id' ) . '/edit' );
@@ -135,8 +204,12 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_delete( $request ) {
-		global $wpdb;
-		$wpdb->delete( 'items', array( 'id' => $request->input( 'id' ) ) );
+		extras::check_login( 'login' );	
+
+		// delete a row from table
+		WP_PX::table( 'items' )->where( 'id', $request->input( 'id' ) )->delete();
+
+		// success flash message
 		$this->flash->success( 'Item berhasil dihapus' );
 		wp_safe_redirect( site_url() . '/items' );
 	}
@@ -145,6 +218,8 @@ class Demo_Routes {
 	 * Sample controller
 	 */
 	public function sample_controller() {
+		extras::check_login( 'login' );	
+
 		set_tiga_template( 'template/sample-index.php', $data );
 	}
 
@@ -152,8 +227,10 @@ class Demo_Routes {
 	 * Sample ajax controller
 	 */
 	public function ajax_controller() {
+		extras::check_login( 'login' );	
+		
 		echo "<p>Hello, I'm from ajax!</p>";
-		die;
+		die();
 	}
 
 }
@@ -246,15 +323,6 @@ class Demo_Flash {
 }
 
 /**
- * Enqueue demo scripts
- */
-function demo_scripts() {
-	wp_enqueue_style( 'demo', 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css' );
-	wp_enqueue_script( 'jquery' );
-}
-add_action( 'wp_enqueue_scripts', 'demo_scripts' );
-
-/**
  * Create DB table for demo purpose
  */
 function create_demo_db_table() {
@@ -274,5 +342,7 @@ function create_demo_db_table() {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 	}
+
+	TigaPixie::get('WP_PX');
 }
-add_action( 'init', 'create_demo_db_table' );
+add_action( 'init', 'create_demo_db_table', 1);
