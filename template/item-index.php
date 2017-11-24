@@ -1,19 +1,20 @@
 <?php get_header(); ?>
-<div class="container">
+<div class="container main-container">	
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-3">
+			<?php include( 'sidebar-admin.php' ) ?>
+		</div>
+		<div class="col-md-9">
+			
+			<?php extras::flash_message($data); ?>
+
+			<div class="row">
+				<div class="col-md-12">
+					<a href="<?php echo site_url() ?>/items/new" class="btn btn-primary">Add New Item</a>
+				</div>
+			</div>
 			<br>
-			<?php $data['flash']->display(); ?>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-md-12">
-			<a href="<?php echo site_url() ?>/items/new" class="btn btn-primary">New Item</a>
-		</div>
-	</div>
-	<br>
-	<div class="row">
-		<div class="col-md-12">
+
 			<table class="table">
 				<thead>
 					<tr>

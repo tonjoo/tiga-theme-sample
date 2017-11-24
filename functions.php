@@ -7,6 +7,57 @@
  * @version 1.0.0
  */
 
+require(get_stylesheet_directory() . '/inc/flash-message.php'); 
+require(get_stylesheet_directory() . '/inc/extras.php'); 
+require(get_stylesheet_directory() . '/app/login.php'); 
+require(get_stylesheet_directory() . '/app/dashboard.php'); 
+require(get_stylesheet_directory() . '/app/articles.php'); 
+
+/**
+ * Main theme init
+ */
+function init_tiga_cms() {
+	add_theme_support( 'post-thumbnails' );
+}
+add_action( 'init', 'init_tiga_cms' );
+
+/**
+ * Enqueue demo scripts
+ */
+function demo_scripts() {
+	// styles
+	wp_enqueue_style( 'bootstrap', 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css' );
+	wp_enqueue_style( 'tiga-style', get_stylesheet_uri() );
+	
+	// media uploader
+	wp_enqueue_media();
+
+	// js jquery
+	wp_register_script('jquery-3.2.1', 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js', false, '3.2.1', true);
+	wp_enqueue_script('jquery-3.2.1');
+
+	// js modernizr
+  	wp_register_script('modernizr',  'https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js', false, '2.8.3', true);
+	wp_enqueue_script('modernizr');
+	
+	// js popper
+	wp_register_script('popper',  'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js', false, '1.12.3', true);
+	wp_enqueue_script('popper');
+  	
+  	// js bootstarp
+  	wp_register_script('bootstrap-js', 'https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/js/bootstrap.min.js', false, '4.0.0-beta.2', true);
+	wp_enqueue_script('bootstrap-js');
+
+	// media uploader
+	wp_register_script('media-uploader-js', get_template_directory_uri() . '/assets/media-uploader.js');
+	wp_enqueue_script('media-uploader-js');
+
+	// js script
+	wp_register_script('script-js', get_template_directory_uri() . '/assets/script.js');
+	wp_enqueue_script('script-js');
+}
+add_action( 'wp_enqueue_scripts', 'demo_scripts' );
+
 /**
  * Routes Class
  */
@@ -53,6 +104,8 @@ class Demo_Routes {
 	 * Item Index Controller
 	 */
 	public function item_index() {
+		extras::check_login( 'login' );	
+
 		$query = WP_PX::table('items')->select('*');
 		$items = $query->get();
 
@@ -67,6 +120,8 @@ class Demo_Routes {
 	 * New Item Controller
 	 */
 	public function item_new() {
+		extras::check_login( 'login' );	
+
 		$data = array(
 			'repopulate' => $this->session->pull( 'input' ),
 			'flash' => $this->flash,
@@ -80,6 +135,8 @@ class Demo_Routes {
 	 * @param object $request   Request object.
 	 */
 	public function item_create( $request ) {
+		extras::check_login( 'login' );	
+
 		if ( $request->has( 'name|price|description' ) ) {
 			$data = $request->all();
 
@@ -103,6 +160,8 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_edit( $request ) {
+		extras::check_login( 'login' );	
+
 		$item = WP_PX::table( 'items' )->find( $request->input( 'id' ), 'id' );
 
 		$data = array(
@@ -120,6 +179,8 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_update( $request ) {
+		extras::check_login( 'login' );	
+
 		if ( $request->has( 'name|price|description' ) ) {
 			$data = $request->all();
 			
@@ -143,6 +204,8 @@ class Demo_Routes {
 	 * @param object $request Request object.
 	 */
 	public function item_delete( $request ) {
+		extras::check_login( 'login' );	
+
 		// delete a row from table
 		WP_PX::table( 'items' )->where( 'id', $request->input( 'id' ) )->delete();
 
@@ -155,6 +218,8 @@ class Demo_Routes {
 	 * Sample controller
 	 */
 	public function sample_controller() {
+		extras::check_login( 'login' );	
+
 		set_tiga_template( 'template/sample-index.php', $data );
 	}
 
@@ -162,8 +227,10 @@ class Demo_Routes {
 	 * Sample ajax controller
 	 */
 	public function ajax_controller() {
+		extras::check_login( 'login' );	
+		
 		echo "<p>Hello, I'm from ajax!</p>";
-		wp_die();
+		die();
 	}
 
 }
@@ -254,15 +321,6 @@ class Demo_Flash {
 	}
 
 }
-
-/**
- * Enqueue demo scripts
- */
-function demo_scripts() {
-	wp_enqueue_style( 'demo', 'https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css' );
-	wp_enqueue_script( 'jquery' );
-}
-add_action( 'wp_enqueue_scripts', 'demo_scripts' );
 
 /**
  * Create DB table for demo purpose
