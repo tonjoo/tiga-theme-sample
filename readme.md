@@ -8,6 +8,6 @@ More about Tiga Router, visit: https://tonjoo.github.io/tiga-router/
 
 `#1` Clone/download Tiga Router to your WordPress plugins directory
 
-`#2` Clone/download this Tiga CMS theme to your WordPress themes directory
+`#2` Clone/download this Tiga theme sample to your WordPress themes directory
 
 `#3` Activate both of plugin and theme
